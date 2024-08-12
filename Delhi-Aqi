@@ -1,0 +1,427 @@
+# Importing libraries and data insertion
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+import random
+
+data=pd.read_csv(r'/Users/neerajkumar/Downloads/delhiaqi.csv')
+data.head()
+
+# Calculating AQI by concentrations of pollutants
+
+pollutants=['co','no','no2','o3','so2','pm2_5','pm10','nh3']
+concentration=data[pollutants]
+
+data["co"]=data["co"]/1000
+
+concentration.head()
+
+data.isnull().sum()
+
+data.columns
+
+data.head()
+
+data
+
+x=data["pm10"]
+x
+
+def pm10(x):
+    if x<=50:aqi=x
+    elif x<=100:aqi=x
+    elif x<=250:aqi=100+(x-100)*2/3
+    elif x<=350:aqi=x-50
+    elif x<=430:aqi=300+(x-350)*5/4
+    elif x>430:aqi=400+(x-430)*5/4
+    else:aqi=0
+    return aqi
+
+data["pm10_AQI"]=data["pm10"].apply(pm10)
+
+def pm2_5(x):
+    if x<=30:aqi=x*5/3
+    elif x<=60:aqi=50+(x-30)*5/3
+    elif x<=90:aqi=100+(x-60)*10/3
+    elif x<=120:aqi=200+(x-90)*10/3
+    elif x<=250:aqi=300+(x-120)*10/13
+    elif x>250:aqi=400 + (x - 250) * 100 / 130
+    else:aqi=0
+    return aqi
+
+data["pm2_5_AQI"]=data["pm2_5"].apply(pm10)
+
+def co(x):
+    if x<=1:aqi=x*50
+    elif x<=2:aqi=50*x
+    elif x<=10:aqi=100+(x-2)*100/8
+    elif x<=17:aqi=200+(x-10)*100/7
+    elif x<=34:aqi=300+(x-17)*100/17
+    elif x>34:aqi=400+(x-34)*100/17
+    else:aqi=0
+    return aqi
+
+data["co_AQI"]=data["co"].apply(co)
+
+def o3(x):
+    if x<=50:aqi=x
+    elif x<=100:aqi=x
+    elif x<=168:aqi=100+(x-100)*100/68
+    elif x<=208:aqi=200+(x-168)*100/ 40
+    elif x<=748:aqi=300+(x-208)*100/539
+    elif x>748:aqi=400+(x-400)*100/ 539
+    else:aqi=0
+    return aqi
+
+data["o3_AQI"]=data["o3"].apply(o3)
+
+def no2(x):
+    if x<=40:aqi=x*5/4
+    elif x<=80:aqi=50+(x-40)*5/4
+    elif x<=180:aqi=100+(x-80)
+    elif x<=280:aqi=x+20
+    elif x<=400:aqi=300+(x-280)*10/12
+    elif x>400:aqi=400+(x-400)*10/12
+    else:aqi=0
+    return aqi
+
+data["no2_AQI"]=data["no2"].apply(no2)
+
+def no(x):
+    if x<=40:aqi=x*5/4
+    elif x<=80:aqi=50+(x-40)*5/4
+    elif x<=180:aqi=100+(x-80)
+    elif x<=280:aqi=x+20
+    elif x<=400:aqi=300+(x-280)*10/12
+    elif x>400:aqi=400+(x-400)*10/12
+    else:aqi=0
+    return aqi
+
+data["no_AQI"]=data["no"].apply(no)
+
+def so2(x):
+    if x<=40:aqi=x*5/4
+    elif x<=80:aqi=50+(x-40)*5/4
+    elif x<=380:aqi=100+(x-80)*1/3
+    elif x<=800:aqi=200+(x-380)*10/42
+    elif x<=1600:aqi=300+(x-800)*1/8
+    elif x>1600:aqi=400+(x-1600)*1/8
+    else:aqi=0
+    return aqi
+
+
+
+data["so2_AQI"]=data["so2"].apply(so2)
+
+def nh3(x):
+    if x<=200:aqi=x*1/4
+    elif x<=400:aqi=50+(x-200)*1/4
+    elif x<=800:aqi=100+(x-400)*1/4
+    elif x<=1200:aqi=200+(x-800)*1/4
+    elif x<=1800:aqi=300+(x-1200)*1/6
+    elif x>1800:aqi=400+(x-1800)*1/6
+    else:aqi=0
+    return aqi
+
+data["nh3_AQI"]=data["nh3"].apply(nh3)
+
+data
+
+data["Total AQI"]=round(data[["pm2_5_AQI", "pm10_AQI", "so2_AQI", "no_AQI","nh3_AQI", "co_AQI", "o3_AQI","no2_AQI"]].max(axis = 1))
+
+# Calculating AQI_Mode
+
+def AQI_mode(x):
+    if x <= 50:
+        return "Good"
+    elif x <= 100:
+        return "Satisfactory"
+    elif x <= 200:
+        return "Moderate"
+    elif x <= 300:
+        return "Poor"
+    elif x <= 400:
+        return "Very Poor"
+    elif x > 400:
+        return "Severe"
+    else:
+        return np.NaN
+
+data['AQI_Mode']=data["Total AQI"].apply(AQI_mode)
+
+data
+
+# Data Visualization
+
+plt.bar(data["AQI_Mode"],data["Total AQI"])
+
+sns.lineplot(x="AQI_Mode",y="Total AQI",data=data) 
+
+sns.lineplot(x="date", y="AQI_Mode", data=data) 
+
+sns.countplot(x="AQI_Mode",data=data)
+
+plt.bar(data["date"],data["AQI_Mode"],)
+
+plt.bar(data["Total AQI"],data["AQI_Mode"])
+
+# Exploratory Data Analysis
+
+data.describe()
+
+data.shape
+
+data.info
+
+#checking datatypes
+data.dtypes
+
+datak=data.drop(columns=['date'])
+
+# Label Encoding
+
+from sklearn.preprocessing import LabelEncoder
+cols=['AQI_Mode']
+le=LabelEncoder()
+
+for col in cols:
+    datak[col] = le.fit_transform(data[col])
+datak.head()
+
+corr=datak.corr()
+plt.figure(figsize=(15, 9))
+sns.heatmap(corr, annot=True, cmap='coolwarm')
+
+# Testing and Splitting data
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+X = data.drop(columns = ['date','Total AQI','AQI_Mode'])
+Y = data['Total AQI']
+
+print(X)
+
+print(Y)
+
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size=0.4, random_state=42)
+
+X_train
+
+Y_train
+
+X_test
+
+Y_test
+
+# Importing Machine learning models
+
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.metrics import accuracy_score
+
+model1 = LinearRegression()
+
+model2 = DecisionTreeRegressor()
+
+model3 = KNeighborsRegressor()
+
+model4 = RandomForestRegressor()
+
+model5 = ExtraTreesRegressor()
+
+model_list=[model1,model2,model3,model4,model5]
+
+# Detailed Analysis of each models
+
+model1.fit(X_train, Y_train)
+
+
+    model1.fit(X_train, Y_train)
+
+    Y_pred = model1.predict(X_test)
+
+    print('Model Name: ',model1)
+
+    from sklearn import metrics
+
+    print('Mean Absolute Error (MAE):', round(metrics.mean_absolute_error(Y_test, Y_pred),3))
+    print('Mean Squared Error (MSE):', round(metrics.mean_squared_error(Y_test, Y_pred),3))
+    print('Root Mean Squared Error (RMSE):', round(np.sqrt(metrics.mean_squared_error(Y_test, Y_pred)),3))
+    print('R2_score:', round(metrics.r2_score(Y_test, Y_pred),6))
+    print('Root Mean Squared Log Error (RMSLE):', round(np.log(np.sqrt(metrics.mean_squared_error(Y_test, Y_pred))),3))
+
+    # Define the function to calculate the MAPE - Mean Absolute Percentage Error
+
+    def MAPE (Y_test, Y_pred):
+        Y_test, Y_pred = np.array(Y_test), np.array(Y_pred)
+        return np.mean(np.abs((Y_test - Y_pred) / Y_test)) * 100
+
+    # Evaluation of MAPE
+
+    result = MAPE(Y_test, Y_pred)
+    print('Mean Absolute Percentage Error (MAPE):', round(result, 2), '%')
+
+    # Calculate Adjusted R squared values
+
+    r_squared = round(metrics.r2_score(Y_test, Y_pred),6)
+    adjusted_r_squared = round(1 - (1-r_squared)*(len(Y)-1)/(len(Y)-X.shape[1]-1),6)
+    print('Adj R Square: ', adjusted_r_squared)
+    print('------------------------------------------------------------------------------------------------------------')
+    
+
+model2.fit(X_train, Y_train)
+
+
+    Y_pred = model2.predict(X_test)
+
+    print('Model Name: ',model2)
+
+    from sklearn import metrics
+
+    print('Mean Absolute Error (MAE):', round(metrics.mean_absolute_error(Y_test, Y_pred),3))
+    print('Mean Squared Error (MSE):', round(metrics.mean_squared_error(Y_test, Y_pred),3))
+    print('Root Mean Squared Error (RMSE):', round(np.sqrt(metrics.mean_squared_error(Y_test, Y_pred)),3))
+    print('R2_score:', round(metrics.r2_score(Y_test, Y_pred),6))
+    print('Root Mean Squared Log Error (RMSLE):', round(np.log(np.sqrt(metrics.mean_squared_error(Y_test, Y_pred))),3))
+
+    # Define the function to calculate the MAPE - Mean Absolute Percentage Error
+
+    def MAPE (Y_test, Y_pred):
+        Y_test, Y_pred = np.array(Y_test), np.array(Y_pred)
+        return np.mean(np.abs((Y_test - Y_pred) / Y_test)) * 100
+
+    # Evaluation of MAPE
+
+    result = MAPE(Y_test, Y_pred)
+    print('Mean Absolute Percentage Error (MAPE):', round(result, 2), '%')
+
+    # Calculate Adjusted R squared values
+
+    r_squared = round(metrics.r2_score(Y_test, Y_pred),6)
+    adjusted_r_squared = round(1 - (1-r_squared)*(len(Y)-1)/(len(Y)-X.shape[1]-1),6)
+    print('Adj R Square: ', adjusted_r_squared)
+    print('------------------------------------------------------------------------------------------------------------')
+    
+
+ model3.fit(X_train, Y_train)
+
+
+
+
+    Y_pred = model3.predict(X_test)
+
+    print('Model Name: ',model3)
+
+    from sklearn import metrics
+
+    print('Mean Absolute Error (MAE):', round(metrics.mean_absolute_error(Y_test, Y_pred),3))
+    print('Mean Squared Error (MSE):', round(metrics.mean_squared_error(Y_test, Y_pred),3))
+    print('Root Mean Squared Error (RMSE):', round(np.sqrt(metrics.mean_squared_error(Y_test, Y_pred)),3))
+    print('R2_score:', round(metrics.r2_score(Y_test, Y_pred),6))
+    print('Root Mean Squared Log Error (RMSLE):', round(np.log(np.sqrt(metrics.mean_squared_error(Y_test, Y_pred))),3))
+
+    # Define the function to calculate the MAPE - Mean Absolute Percentage Error
+
+    def MAPE (Y_test, Y_pred):
+        Y_test, Y_pred = np.array(Y_test), np.array(Y_pred)
+        return np.mean(np.abs((Y_test - Y_pred) / Y_test)) * 100
+
+    # Evaluation of MAPE
+
+    result = MAPE(Y_test, Y_pred)
+    print('Mean Absolute Percentage Error (MAPE):', round(result, 2), '%')
+
+    # Calculate Adjusted R squared values
+
+    r_squared = round(metrics.r2_score(Y_test, Y_pred),6)
+    adjusted_r_squared = round(1 - (1-r_squared)*(len(Y)-1)/(len(Y)-X.shape[1]-1),6)
+    print('Adj R Square: ', adjusted_r_squared)
+    print('------------------------------------------------------------------------------------------------------------')
+    
+
+model4.fit(X_train, Y_train)
+
+
+
+
+    Y_pred = model4.predict(X_test)
+
+    print('Model Name: ',model4)
+
+    from sklearn import metrics
+
+    print('Mean Absolute Error (MAE):', round(metrics.mean_absolute_error(Y_test, Y_pred),3))
+    print('Mean Squared Error (MSE):', round(metrics.mean_squared_error(Y_test, Y_pred),3))
+    print('Root Mean Squared Error (RMSE):', round(np.sqrt(metrics.mean_squared_error(Y_test, Y_pred)),3))
+    print('R2_score:', round(metrics.r2_score(Y_test, Y_pred),6))
+    print('Root Mean Squared Log Error (RMSLE):', round(np.log(np.sqrt(metrics.mean_squared_error(Y_test, Y_pred))),3))
+
+    # Define the function to calculate the MAPE - Mean Absolute Percentage Error
+
+    def MAPE (Y_test, Y_pred):
+        Y_test, Y_pred = np.array(Y_test), np.array(Y_pred)
+        return np.mean(np.abs((Y_test - Y_pred) / Y_test)) * 100
+
+    # Evaluation of MAPE
+
+    result = MAPE(Y_test, Y_pred)
+    print('Mean Absolute Percentage Error (MAPE):', round(result, 2), '%')
+
+    # Calculate Adjusted R squared values
+
+    r_squared = round(metrics.r2_score(Y_test, Y_pred),6)
+    adjusted_r_squared = round(1 - (1-r_squared)*(len(Y)-1)/(len(Y)-X.shape[1]-1),6)
+    print('Adj R Square: ', adjusted_r_squared)
+    print('------------------------------------------------------------------------------------------------------------')
+    
+
+model5.fit(X_train, Y_train)
+
+   
+    Y_pred = model5.predict(X_test)
+    print('Model Name: ',model5)
+    from sklearn import metrics
+
+    print('Mean Absolute Error (MAE):', round(metrics.mean_absolute_error(Y_test, Y_pred),3))
+    print('Mean Squared Error (MSE):', round(metrics.mean_squared_error(Y_test, Y_pred),3))
+    print('Root Mean Squared Error (RMSE):', round(np.sqrt(metrics.mean_squared_error(Y_test, Y_pred)),3))
+    print('R2_score:', round(metrics.r2_score(Y_test, Y_pred),6))
+    print('Root Mean Squared Log Error (RMSLE):', round(np.log(np.sqrt(metrics.mean_squared_error(Y_test, Y_pred))),3))
+
+    # Defining the function to calculate the MAPE - Mean Absolute Percentage Error
+    def MAPE (Y_test, Y_pred):
+        Y_test, Y_pred = np.array(Y_test), np.array(Y_pred)
+        return np.mean(np.abs((Y_test - Y_pred) / Y_test)) * 100
+    # Evaluation of MAPE
+    result = MAPE(Y_test, Y_pred)
+    print('Mean Absolute Percentage Error (MAPE):', round(result, 2), '%')
+    # Calculate Adjusted R squared values
+    r_squared = round(metrics.r2_score(Y_test, Y_pred),6)
+    adjusted_r_squared = round(1 - (1-r_squared)*(len(Y)-1)/(len(Y)-X.shape[1]-1),6)
+    print('Adj R Square: ', adjusted_r_squared)
+    print('------------------------------------------------------------------------------------------------------------')
+   
+
+# Predicted data
+
+Y_pred
+
+# Merging predicted results with data
+
+Results = pd.DataFrame({'Close_A':Y_test, 'Close_P':Y_pred,'%Error':(Y_test-Y_pred)})
+ResultsFinal = data.merge(Results, left_index=True, right_index=True)
+ResultsFinal
+
+data = {'Linear':3.985, 'DecisionTree':4.507, 'KNN':10.783, 
+        'ExtraTrees':2.592,'RandomForest':3.952}
+x=list(data.keys())
+y=list(data.values()) 
+fig = plt.figure(figsize = (10, 5))
+plt.bar(x,y,width = 0.4,color='green')
